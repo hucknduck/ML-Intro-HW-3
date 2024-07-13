@@ -62,14 +62,14 @@ class Network(object):
                     "forward_outputs" - A list of length self.num_layers containing the forward computation (parameters & output of each layer).
         """
         ZL = 1
-        forward_outputs = []
+        forward_outputs = [X]
         prev_ZL = X
 
         for l in range(1, len(self.sizes) - 1):
             #calc V_l from W_l*Z_(l-1) + b_l
             #activate RELU on V_l to get Z_l
             #add Z_l to forward_outputs
-            ONEs = np.ones((1, 100))
+            ONEs = np.ones((1, X.shape[1]))
             V_l = np.matmul(self.parameters['W' + str(l)], prev_ZL) + np.matmul(self.parameters['b' + str(l)], ONEs)
             prev_ZL = self.relu(V_l)
             forward_outputs.append(prev_ZL)
@@ -92,24 +92,25 @@ class Network(object):
         """
         grads = {}
         Outputs = forward_outputs.copy() #copy to prevent contamination of params
-        Deriv_Tot = self.cross_entropy_derivative(ZL, Y)
-        #d(l)/d(ZL)
-        Relu_Deriv = np.ones((10, 1))
-        #Deriv_Tot = np.matmul(Curr_Zl, Deriv_Tot)
-        
+        # Outputs.append(ZL)
         for l in range(len(forward_outputs), 0, -1):
             #calc relu_deriv for Z_l
             #derivative for b is relu_deriv (vector of  1s and 0s) and add to dict
             #calc mat_deriv for V_L = Z_(l-1).T * Deriv_Tot
-            #Curr_Zl = Outputs.pop()
-            Prev_Zl = Outputs.pop()
+            
+            Curr_Zl = Outputs.pop()
+            if l == (len(forward_outputs)):
+                Deriv_Tot_All_Batches = self.cross_entropy_derivative(ZL, Y) #dl/dZL
+                Relu_Deriv_All_Batches = self.relu_derivative(Curr_Zl) #dl/dZL
+            else:
+                Deriv_Tot_All_Batches = np.matmul(self.parameters['W' + str(l + 1)].T, Deriv_Tot_All_Batches)*Relu_Deriv_All_Batches
+                Relu_Deriv_All_Batches = self.relu_derivative(Curr_Zl)
 
-            Relu_Deriv = self.relu_derivative(Prev_Zl)
-            grads['db' + str(l-1)] = np.copy(Relu_Deriv)
+            WDeriv = np.matmul(Deriv_Tot_All_Batches, Curr_Zl.T) / Deriv_Tot_All_Batches.shape[1]
+            BDeriv = np.sum(Deriv_Tot_All_Batches, axis = 1)[:, np.newaxis] / Deriv_Tot_All_Batches.shape[1]
 
-            WDeriv = np.matmul(Deriv_Tot, Prev_Zl.T)
-            Deriv_Tot = None
-            grads['dW' + str(l)] = np.copy(WDeriv) #once again, copy to prevent contamination
+            grads['db' + str(l)] = np.copy(BDeriv)
+            grads['dW' + str(l)] = np.copy(WDeriv) 
 
         return grads
 
