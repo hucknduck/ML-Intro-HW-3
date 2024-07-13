@@ -23,11 +23,15 @@ class Network(object):
 
     def relu(self,x):
         """TODO: Implement the relu function."""
-        raise NotImplementedError
+        Y = np.zeros_like(x)
+        return np.maximum(Y, x)
 
     def relu_derivative(self,x):
         """TODO: Implement the derivative of the relu function."""
-        raise NotImplementedError
+        mask = x > 0
+        res = np.zeros_like(x)
+        res[mask] = 1
+        return res
 
 
     def cross_entropy_loss(self, logits, y_true):
@@ -44,8 +48,11 @@ class Network(object):
                     "y_true": numpy array of shape (batch_size,) containing the true labels of the batch
             Returns: a numpy array of shape (10,batch_size) where each column is the gradient of the loss with respect to y_pred (the output of the network before the softmax layer) for the given example.
         """
-        # TODO: Implement
-        raise NotImplementedError
+        Zl = softmax(logits, axis=0)
+        y_one_hot = np.eye(10)[y_true].T 
+        
+        grad = Zl - y_one_hot
+        return grad
 
 
     def forward_propagation(self, X):
@@ -56,9 +63,21 @@ class Network(object):
         """
         ZL = 1
         forward_outputs = []
+        prev_ZL = X
 
-        # TODO: Implement the forward function
-        raise NotImplementedError
+        for l in range(1, len(self.sizes) - 1):
+            #calc V_l from W_l*Z_(l-1) + b_l
+            #activate RELU on V_l to get Z_l
+            #add Z_l to forward_outputs
+            ONEs = np.ones((1, 100))
+            V_l = np.matmul(self.parameters['W' + str(l)], prev_ZL) + np.matmul(self.parameters['b' + str(l)], ONEs)
+            prev_ZL = self.relu(V_l)
+            forward_outputs.append(prev_ZL)
+
+        #calc last layer outside of loop since no relu
+        ZL = np.matmul(self.parameters['W' + str(len(self.sizes) - 1)], prev_ZL) + self.parameters['b' + str(len(self.sizes) - 1)]
+        #forward_outputs.append(ZL)
+
         return ZL, forward_outputs
 
     def backpropagation(self, ZL, Y, forward_outputs):
@@ -72,9 +91,26 @@ class Network(object):
         
         """
         grads = {}
+        Outputs = forward_outputs.copy() #copy to prevent contamination of params
+        Deriv_Tot = self.cross_entropy_derivative(ZL, Y)
+        #d(l)/d(ZL)
+        Relu_Deriv = np.ones((10, 1))
+        #Deriv_Tot = np.matmul(Curr_Zl, Deriv_Tot)
         
-        #TODO: Implement the backward function
-        raise NotImplementedError
+        for l in range(len(forward_outputs), 0, -1):
+            #calc relu_deriv for Z_l
+            #derivative for b is relu_deriv (vector of  1s and 0s) and add to dict
+            #calc mat_deriv for V_L = Z_(l-1).T * Deriv_Tot
+            #Curr_Zl = Outputs.pop()
+            Prev_Zl = Outputs.pop()
+
+            Relu_Deriv = self.relu_derivative(Prev_Zl)
+            grads['db' + str(l-1)] = np.copy(Relu_Deriv)
+
+            WDeriv = np.matmul(Deriv_Tot, Prev_Zl.T)
+            Deriv_Tot = None
+            grads['dW' + str(l)] = np.copy(WDeriv) #once again, copy to prevent contamination
+
         return grads
 
 
