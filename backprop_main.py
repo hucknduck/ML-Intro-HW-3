@@ -19,9 +19,10 @@ test_accs = []
 
 
 # Training configuration
-epochs = 50
-batch_size = 100
+epochs = 30
+batch_size = 1
 layer_dims = [784, 40, 10]
+#Seif B+C
 """
 for l in range(len(learning_rates)):
     learning_rate = learning_rates[l]
@@ -64,39 +65,42 @@ plt.ylabel('Test Accuracy')
 
 plt.show()
 """
-layer_dims = [784, 240, 40, 10]
+#Seif D
+layer_dims = [784, 10]
+#Seif E
+#layer_dims = [784, 240, 40, 10]
 net = Network(layer_dims)
 param, epoch_train_cost, epoch_test_cost, epoch_train_acc, epoch_test_acc = net.train(x_train, y_train, epochs, batch_size, 0.1, x_test=x_test, y_test=y_test)
 
-Colors = ['blue']
-l = 0
-EpochsScale = np.array(range(50))
-plt.figure(1)
-plt.plot(EpochsScale, epoch_train_acc, color=Colors[l])
-plt.grid(True)
+# Colors = ['blue']
+# l = 0
+# EpochsScale = np.array(range(30))
+# plt.figure(1)
+# plt.plot(EpochsScale, epoch_train_acc, color=Colors[l])
+# plt.grid(True)
     
-plt.figure(2)
-plt.plot(EpochsScale, epoch_train_cost, color=Colors[l])
-plt.grid(True)
+# plt.figure(2)
+# plt.plot(EpochsScale, epoch_train_cost, color=Colors[l])
+# plt.grid(True)
     
-plt.figure(3)
-plt.plot(EpochsScale, epoch_test_acc, color=Colors[l])
-plt.grid(True)
+# plt.figure(3)
+# plt.plot(EpochsScale, epoch_test_acc, color=Colors[l])
+# plt.grid(True)
 
-plt.figure(1)
-plt.xlabel('Epochs')
-plt.ylabel('Training Accuracy')
+# plt.figure(1)
+# plt.xlabel('Epochs')
+# plt.ylabel('Training Accuracy')
 
-plt.figure(2)
-plt.xlabel('Epochs')
-plt.ylabel('Training Cost')
+# plt.figure(2)
+# plt.xlabel('Epochs')
+# plt.ylabel('Training Cost')
 
-plt.figure(3)
-plt.xlabel('Epochs')
-plt.ylabel('Test Accuracy')
+# plt.figure(3)
+# plt.xlabel('Epochs')
+# plt.ylabel('Test Accuracy')
 
-plt.show()
+# plt.show()
 
-# for i in range(10):
-#     plt.imshow(np.reshape(param['W1'][i], (28,28)), interpolation='nearest')
-#     plt.show()
+for i in range(10):
+    plt.imshow(np.reshape(param['W1'][i], (28,28)), interpolation='nearest')
+    plt.show()
